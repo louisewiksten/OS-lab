@@ -1,3 +1,8 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 /*
 
 The task is to construct a small shell implementing the following:
@@ -50,7 +55,102 @@ You are not allowed to use excessive memory or have "memory leaks" (i.e. the amo
  
  */
 
+/* A process is a single process.  */
+typedef struct process
+{
+  struct process *next;       /* next process in pipeline */
+  char **argv;                /* for exec */
+  pid_t pid;                  /* process ID */
+  char completed;             /* true if process has completed */
+  char stopped;               /* true if process has stopped */
+  int status;                 /* reported status value */
+} process;
+
+/* A job is a pipeline of processes.  */
+typedef struct job
+{
+  struct job *next;           /* next active job */
+  char *command;              /* command line, used for messages */
+  process *first_process;     /* list of processes in this job */
+  pid_t pgid;                 /* process group ID */
+  char notified;              /* true if user told about stopped job */
+  struct termios;// tmodes;      /* saved terminal modes */
+  int stdin, stdout, stderr;  /* standard i/o channels */
+} job;
+
+/* The active jobs are linked into a list.  This is its head.   */
+job *first_job = NULL;
+
+/* Find the active job with the indicated pgid.  */
+job * find_job (pid_t pgid)
+{
+  job *j;
+
+  for (j = first_job; j; j = j->next)
+    if (j->pgid == pgid)
+      return j;
+  return NULL;
+}
+
+/* Return true if all processes in the job have stopped or completed.  */
+int job_is_stopped (job *j)
+{
+  process *p;
+
+  for (p = j->first_process; p; p = p->next)
+    if (!p->completed && !p->stopped)
+      return 0;
+  return 1;
+}
+
+/* Return true if all processes in the job have completed.  */
+int job_is_completed (job *j)
+{
+  process *p;
+  for (p = j->first_process; p; p = p->next)
+    if (!p->completed)
+      return 0;
+  return 1;
+}
 
 
+int main(int argc, char **argv, char **envp)
+{
+	char str[80];
+	while (1) {
+	
+		printf("$ ");
+		gets( str );
+		
+		if(str[0] == 'c')
+		{
+			if(str[1] == 'd')
+			{
+				if(str[2] == ' ')
+				{
+					char dir[77]; //Only 77 possible (80 - cd+blankspace)
+					for( int i = 0; i < 77; i++ )
+					{
+						dir[i] = str[3+i];
+					}
+					printf("-bash: cd: %s: No such directory\n", dir);
+					continue;			
+				}
+				
+			}
+		} 
+		else if(str[0] == 'e')
+			if(str[1] == 'x')
+				if(str[2] == 'i')
+					if(str[3] == 't')
+						break;		
+						//Also stop all processes.. 
+		
+		printf("-bash: %s: command not found\n", str);
+	}
+	
+	
+	return 0;
+}
 
 
