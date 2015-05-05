@@ -129,10 +129,15 @@ int main(int argc, char **argv, char **envp)
 				if(str[2] == ' ')
 				{
 					char dir[77]; //Only 77 possible (80 - cd+blankspace)
+					int iterator = 3;
 					for( int i = 0; i < 77; i++ )
 					{
-						dir[i] = str[3+i];
+						while(str[iterator] == ' ') //Skip blankspaces. 
+							iterator++;
+						dir[i] = str[iterator];
+						iterator++;
 					}
+					
 					printf("-bash: cd: %s: No such directory\n", dir);
 					continue;			
 				}
@@ -144,8 +149,9 @@ int main(int argc, char **argv, char **envp)
 				if(str[2] == 'i')
 					if(str[3] == 't')
 						break;		
-						//Also stop all processes.. 
+						//TODO: Also stop all processes.. 
 		
+		//TODO: other commands and what to do with them... :/
 		printf("-bash: %s: command not found\n", str);
 	}
 	
